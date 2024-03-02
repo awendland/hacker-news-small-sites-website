@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hacker News Small Sites</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <style>
+      :root {
+        --pico-font-size: 80%;
+        --pico-border-radius: 0;
+      }
+
+      [data-theme="light"],
+      :root:not([data-theme="dark"]) {
+        --pico-background-color: #f6f6ef;
+        --pico-text-selection-color: rgba(244, 93, 44, 0.25);
+        --pico-primary: #bd3c13;
+        --pico-primary-background: #d24317;
+        --pico-primary-underline: rgba(189, 60, 19, 0.5);
+        --pico-primary-hover: #942d0d;
+        --pico-primary-hover-background: #bd3c13;
+        --pico-primary-focus: rgba(244, 93, 44, 0.5);
+        --pico-primary-inverse: #fff;
+      }
+
+      .cell-label {
+        display: none;
+      }
+      @media all and (max-width: 760px) {
+        table {
+          display: block;
+        }
+        table thead {
+          display: none;
+        }
+        table tr {
+          display: block;
+          border: none;
+          border-bottom: solid 0.5px rgb(231, 234, 240);
+        }
+        table th,
+        table td {
+          display: inline-block;
+          padding-left: 0;
+          padding-right: 0;
+        }
+        .cell-label {
+          display: inline-block;
+          padding-right: 0.5em;
+        }
+        .mobile-block {
+          display: block;
+          border-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>Hacker News Small Sites</h1>
+      <p>
+        Articles on Hacker News from domains outside the top 1 million. RSS
+        feeds filtered by minimum score, updated every 4 hours:
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-1.xml"
+          >>=1</a
+        >,
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-2.xml"
+          >>=2</a
+        >,
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-5.xml"
+          >>=5</a
+        >,
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-10.xml"
+          >>=10</a
+        >,
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-20.xml"
+          >>=20</a
+        >,
+        <a
+          href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-50.xml"
+          >>=50</a
+        >.
+      </p>
+      <div>
+        <form
+          action="/"
+          method="get"
+          onsubmit="document.getElementById('submitBtn').value = 'Loading...';"
+        >
+          <input type="text" name="query" value="{{ query or '' }}" />
+          <input type="submit" id="submitBtn" value="Search" />
+        </form>
+        <p>
+          Query time: {{ (load_time.total_seconds() * 1000) | round(2) }} ms{%
+          if feed %}. Latest posts from RSS feed
+          <a
+            href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-1.xml"
+            >score >=1</a
+          >. Enter a query to perform a semantic search over all posts.{% endif
+          %}
+        </p>
+      </div>
+      <div>
+        {% if feed %}
+        <p></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th style="white-space: nowrap">Pub Date</th>
+              <th style="white-space: nowrap">Score</th>
+              <th style="white-space: nowrap">Comments</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in feed %}
+            <tr>
+              <td class="mobile-block">
+                <a href="{{ e.thread_link }}">{{ e.title }}</a>
+                <br />
+                <small>{{ e.link }}</small>
+              </td>
+              <td style="white-space: nowrap">
+                {{ e.pub_date.strftime('%Y-%m-%d') }}
+              </td>
+              <td style="white-space: nowrap">
+                <span class="cell-label">Score: </span>{{ e.num_score }}
+              </td>
+              <td style="white-space: nowrap">
+                <span class="cell-label">Comments: </span>{{ e.num_comments }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% elif results %}
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th style="white-space: nowrap">Pub Date</th>
+              <th style="white-space: nowrap">Score</th>
+              <th style="white-space: nowrap">Comments</th>
+              <th>Distances</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+            <tr>
+              <td class="mobile-block">
+                <a href="{{ r['doc'].thread_link }}">{{ r['doc'].title }}</a>
+                <br />
+                <small>{{ r['doc'].link }}</small>
+              </td>
+              <td style="white-space: nowrap">
+                {{ r['doc'].pub_date.strftime('%Y-%m-%d') }}
+              </td>
+              <td style="white-space: nowrap">
+                <span class="cell-label">Score: </span>{{ r['doc'].num_score }}
+              </td>
+              <td style="white-space: nowrap">
+                <span class="cell-label">Comments: </span>{{
+                r['doc'].num_comments }}
+              </td>
+              <td>
+                <span class="cell-label">Distances: </span>
+                {{ r['search_info'] | map(attribute="distance") | map('safe') |
+                map('truncate', 5, True, '') | join(", ") }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </main>
+  </body>
+</html>
