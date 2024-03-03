@@ -3,27 +3,42 @@ name = "hacker-news-small-sites-search"
 version = "0.1.0"
 description = ""
 authors = ["Alex Wendland <me@alexwendland.com>"]
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
 lxml = "^5.1.0"
-llama-index-core = "^0.10.12"
-llama-index-embeddings-openai = "^0.1.6"
 chromadb = "^0.4.23"
 html2text = "^2024.2.25"
 langchain-community = "^0.0.24"
 sentence-transformers = "^2.4.0"
-fastui = "^0.5.2"
 fastapi = "^0.110.0"
-python-multipart = "^0.0.9"
 jinja2 = "^3.1.3"
 cachetools = "^5.3.3"
 feedparser = "^6.0.11"
+torch = {version = "2.2.1", source = "pytorch-cpu" }
+
+
+[tool.poetry.group.exploration]
+optional = true
+
+[tool.poetry.group.exploration.dependencies]
+fastui = "^0.5.2"
+python-multipart = "^0.0.9"
+llama-index-core = "^0.10.12"
+llama-index-embeddings-openai = "^0.1.6"
 
 
 [tool.poetry.group.dev.dependencies]
 pyright = "^1.1.352"
+
+[tool.poetry.extras]
+cuda = []
+
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]

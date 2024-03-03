@@ -22,6 +22,10 @@ setup-ci: setup-poetry setup-pre-commit
 # Must be run after you've followed the "Setup" instruction in README.md.
 setup: setup-ci
 
+# Install torch with GPU support (we lock to CPU support in pyproject.toml for CI/remote webserver deploy)
+setup-torch-gpu:
+    poetry run pip install torch==2.2.1
+
 # Develop the web server
 web-dev *args:
     poetry run uvicorn webserver:app --reload
