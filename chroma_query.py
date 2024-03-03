@@ -80,6 +80,12 @@ class QueryEngine:
             if row:
                 yield HNSSEntry.model_validate_json(row[1]), sr
 
+    def count_documents(self) -> int:
+        return self.db_client.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+
+    def count_embeddings(self) -> int:
+        self.vector_collection.count()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

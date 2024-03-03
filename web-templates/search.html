@@ -123,12 +123,12 @@
         </form>
         <p>
           Query time: {{ (load_time.total_seconds() * 1000) | round(2) }} ms{%
-          if feed %}. Latest posts from RSS feed
+          if feed %}. Latest articles from RSS feed
           <a
             href="https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-1.xml"
             >score >=1</a
-          >. Enter a query to perform a semantic search over all posts.{% endif
-          %}
+          >. Enter a query to perform a semantic search over {{
+          "{:,}".format(doc_count) }} articles. {% endif %}
         </p>
       </div>
       <div>

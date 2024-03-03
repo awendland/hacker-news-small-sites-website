@@ -24,6 +24,11 @@ def cached_query(query: str):
 
 
 @cached(TTLCache(1, ttl=3600))
+def cached_doc_count():
+    return query_engine.count_documents()
+
+
+@cached(TTLCache(1, ttl=3600))
 def cached_feed():
     feed = feedparser.parse(
         "https://raw.githubusercontent.com/awendland/hacker-news-small-sites/generated/feeds/hn-small-sites-score-1.xml"
@@ -63,6 +68,7 @@ async def read_item(request: Request, query: str | None = None):
             "query": query,
             "results": results,
             "feed": feed,
+            "doc_count": cached_doc_count(),
             "load_time": datetime.now() - start,
         },
     )
