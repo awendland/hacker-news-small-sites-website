@@ -20,7 +20,7 @@ query_engine = QueryEngine(data_db="data.db")
 
 @lru_cache
 def cached_query(query: str):
-    return list(query_engine.query(query, num_results=50))
+    return list(query_engine.query(query, num_results=80))
 
 
 @cached(TTLCache(1, ttl=3600))
@@ -49,7 +49,7 @@ async def read_item(request: Request, query: str | None = None):
     if query:
         query_results = cached_query(query)
         results = (
-            {"doc": doc, "search_info": search_info}
+            {"doc": doc, "distances": [s["distance"] for s in search_info]}
             for doc, search_info in query_results
         )
         feed = None

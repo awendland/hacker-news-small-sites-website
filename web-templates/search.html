@@ -27,8 +27,14 @@
         --pico-primary-inverse: #fff;
       }
 
+      .no-wrap-desktop {
+        white-space: nowrap;
+      }
       .cell-label {
         display: none;
+      }
+      .distances {
+        max-width: 20em;
       }
       @media all and (max-width: 760px) {
         table {
@@ -36,6 +42,9 @@
         }
         table thead {
           display: none;
+        }
+        table tbody {
+          display: block;
         }
         table tr {
           display: block;
@@ -47,14 +56,26 @@
           display: inline-block;
           padding-left: 0;
           padding-right: 0;
+          border-bottom: 0;
         }
         .cell-label {
           display: inline-block;
           padding-right: 0.5em;
         }
-        .mobile-block {
+        .title-link {
           display: block;
           border-bottom: 0;
+        }
+        .pub-date,
+        .score,
+        .comments {
+          margin-right: 0.5em;
+          padding-top: 0;
+        }
+        .distances {
+          display: block;
+          font-size: 0.5em;
+          padding-top: 0;
         }
       }
     </style>
@@ -111,77 +132,52 @@
         </p>
       </div>
       <div>
-        {% if feed %}
-        <p></p>
+        {% macro table_entries(entries, distances) %}
         <table>
           <thead>
             <tr>
               <th>Title</th>
-              <th style="white-space: nowrap">Pub Date</th>
-              <th style="white-space: nowrap">Score</th>
-              <th style="white-space: nowrap">Comments</th>
+              <th class="no-wrap-desktop">Pub Date</th>
+              <th class="no-wrap-desktop">Score</th>
+              <th class="no-wrap-desktop">Comments</th>
+              {% if distances %}
+              <th>Distances</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody>
-            {% for e in feed %}
+            {% for e in entries %}
             <tr>
-              <td class="mobile-block">
-                <a href="{{ e.thread_link }}">{{ e.title }}</a>
+              <td class="title-link">
+                <a href="{{ e.link }}">{{ e.title }}</a>
+                (<a href="{{ e.thread_link }}">HN</a>)
                 <br />
                 <small>{{ e.link }}</small>
               </td>
-              <td style="white-space: nowrap">
+              <td class="pub-date no-wrap-desktop">
                 {{ e.pub_date.strftime('%Y-%m-%d') }}
               </td>
-              <td style="white-space: nowrap">
+              <td class="score no-wrap-desktop">
                 <span class="cell-label">Score: </span>{{ e.num_score }}
               </td>
-              <td style="white-space: nowrap">
+              <td class="comments no-wrap-desktop">
                 <span class="cell-label">Comments: </span>{{ e.num_comments }}
               </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% elif results %}
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th style="white-space: nowrap">Pub Date</th>
-              <th style="white-space: nowrap">Score</th>
-              <th style="white-space: nowrap">Comments</th>
-              <th>Distances</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in results %}
-            <tr>
-              <td class="mobile-block">
-                <a href="{{ r['doc'].thread_link }}">{{ r['doc'].title }}</a>
-                <br />
-                <small>{{ r['doc'].link }}</small>
-              </td>
-              <td style="white-space: nowrap">
-                {{ r['doc'].pub_date.strftime('%Y-%m-%d') }}
-              </td>
-              <td style="white-space: nowrap">
-                <span class="cell-label">Score: </span>{{ r['doc'].num_score }}
-              </td>
-              <td style="white-space: nowrap">
-                <span class="cell-label">Comments: </span>{{
-                r['doc'].num_comments }}
-              </td>
-              <td>
+              {% if distances %}
+              <td class="distances">
                 <span class="cell-label">Distances: </span>
-                {{ r['search_info'] | map(attribute="distance") | map('safe') |
-                map('truncate', 5, True, '') | join(", ") }}
+                {{ distances[loop.index0] | map('safe') | map('truncate', 5,
+                True, '') | join(", ") }}
               </td>
+              {% endif %}
             </tr>
             {% endfor %}
           </tbody>
         </table>
-        {% endif %}
+        {% endmacro %} {% if feed %} {{ table_entries(feed) }} {% elif results
+        %} {% set results_list = results | list %} {{ table_entries(results_list
+        | map(attribute="doc"), results_list | map(attribute="distances") |
+        list) }} {% endif %}
       </div>
     </main>
   </body>
