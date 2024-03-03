@@ -7,19 +7,9 @@ from email.utils import parsedate_to_datetime
 from typing import Annotated, Generator, List, Tuple, TypedDict
 
 import chromadb
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from pydantic import BaseModel, BeforeValidator
 
-_embedder = None
-
-
-def get_embedder():
-    global _embedder
-    if _embedder is None:
-        _embedder = HuggingFaceBgeEmbeddings(
-            model_name="BAAI/bge-small-en", encode_kwargs={"normalize_embeddings": True}
-        )
-    return _embedder, "BAAI/bge-small-en"
+from embedding_models import get_embedder
 
 
 class QueryResultMetadata(TypedDict):
