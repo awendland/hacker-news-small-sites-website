@@ -1,6 +1,8 @@
+import os
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from functools import lru_cache
+from typing import cast
 
 import feedparser
 from cachetools import TTLCache, cached
@@ -15,7 +17,10 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="web-templates")
 
-query_engine = QueryEngine(data_db="data.db")
+query_engine = QueryEngine(
+    data_db=os.getenv("HNSS_DATA_DB", "data.db"),
+    chroma_dir=os.getenv("HNSS_CHROMA_DIR", "./chroma"),
+)
 
 
 @lru_cache
@@ -41,7 +46,7 @@ def cached_feed():
                 link=e.link,
                 pub_date=parsedate_to_datetime(e.published),
                 description=e.summary,
-                last_source_commit=None,
+                last_source_commit=cast(str, None),
             )
         )
         for e in feed.entries

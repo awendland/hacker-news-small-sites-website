@@ -31,5 +31,8 @@ COPY . /app
 # Expose the port the app runs on
 EXPOSE 8000
 
+ENV HNSS_DATA_DB=/data/data.db
+ENV HNSS_CHROMA_DIR=/data/chroma
+
 # Command to run the application
 CMD ["uvicorn", "webserver:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -42,8 +42,8 @@ class HNSSEntry(BaseModel):
 
 
 class QueryEngine:
-    def __init__(self, data_db: str):
-        self.vector_client = chromadb.PersistentClient(path="./chroma")
+    def __init__(self, data_db: str, chroma_dir: str):
+        self.vector_client = chromadb.PersistentClient(path=chroma_dir)
         self.vector_collection = self.vector_client.get_collection(
             name="hn_small_sites"
         )
@@ -56,7 +56,9 @@ class QueryEngine:
         query_embeddings = self.embedder.embed_query(query)
         results = self.vector_collection.query(query_embeddings, n_results=num_results)
         doc_results = defaultdict[str, List[QueryResultMetadata]](list)
-        for id, ds in zip(results["ids"][0], results["distances"][0]):
+        ids = results["ids"][0]
+        distances = results["distances"][0] if results["distances"] else []
+        for id, ds in zip(ids, distances):
             hnss_id = id.split(":")[0]
             doc_results[hnss_id].append({"embedding_id": id, "distance": ds})
         for id, sr in doc_results.items():
@@ -74,7 +76,7 @@ class QueryEngine:
         return self.db_client.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
 
     def count_embeddings(self) -> int:
-        self.vector_collection.count()
+        return self.vector_collection.count()
 
 
 if __name__ == "__main__":
@@ -83,11 +85,7 @@ if __name__ == "__main__":
     parser.add_argument("query", help="Query to embed and search for in the DB")
     args = parser.parse_args()
 
-    vector_client = chromadb.PersistentClient(path="./chroma")
-    vector_collection = vector_client.get_collection(name="hn_small_sites")
-    db_client = sqlite3.connect(args.data_db)
-
-    for h, _ in QueryEngine(args.data_db).query(args.query):
+    for h, _ in QueryEngine(args.data_db, "./chroma").query(args.query):
         doc = h.model_dump()
         doc.pop("text")
         print(json.dumps(doc, indent=2))
