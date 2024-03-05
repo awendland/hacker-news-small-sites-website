@@ -1,9 +1,7 @@
 # Ignore everything
 **
 
-# But not the top-level .py files
-!/*.py
-
-# Also include necessary files for the build
 !pyproject.toml
 !poetry.lock*
+!/*.py
+!web-templates/
