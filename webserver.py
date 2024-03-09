@@ -1,4 +1,6 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from functools import lru_cache
@@ -12,8 +14,6 @@ from fastapi.templating import Jinja2Templates
 
 from chroma_query import QueryEngine
 from git_to_jsonl import FeedItem, process_feed_item
-
-app = FastAPI()
 
 templates = Jinja2Templates(directory="web-templates")
 
@@ -51,6 +51,25 @@ def cached_feed():
         )
         for e in feed.entries
     ]
+
+
+@asynccontextmanager
+async def app_lifespan(app: FastAPI):
+    async def cache_refresher():
+        try:
+            while True:
+                cached_feed()
+                await asyncio.sleep(1 * 60)
+        except asyncio.CancelledError:
+            pass
+
+    task = asyncio.create_task(cache_refresher())
+    yield
+    task.cancel()
+    await task
+
+
+app = FastAPI(lifespan=app_lifespan)
 
 
 @app.get("/", response_class=HTMLResponse)
