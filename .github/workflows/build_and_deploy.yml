@@ -1,4 +1,4 @@
-name: Build Images
+name: Build & Deploy Images
 
 on: # yamllint disable-line rule:truthy
   push:
@@ -9,8 +9,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-cluster-coordinator:
-    name: "build: cluster-coordinator"
+  build:
+    name: "build"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,3 +46,18 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deploy-latest:
+    name: Deploy :latest to Server
+    runs-on: ubuntu-latest
+    environment: production
+    needs: build
+    steps:
+      - name: SSH into deployment server and restart service
+        run: |
+          echo "${{ secrets.SSH_DEPLOY_KEY }}" > deploy_key
+          chmod 600 deploy_key
+          ssh -o StrictHostKeyChecking=no -i deploy_key ${{ secrets.SSH_DEPLOY_USER }}@${{ secrets.SSH_DEPLOY_HOST }} << EOF
+              podman pull ghcr.io/${{ github.repository }}:latest
+              systemctl restart container-hacker-news-small-sites-website.service
+          EOF
